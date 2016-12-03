@@ -61,8 +61,7 @@ infixl 4 <*>
   (a -> b)
   -> f a
   -> f b
-(<$>) =
-  error "todo: Course.Applicative#(<$>)"
+(<$>) f = (<*>) (pure f)
 
 -- | Insert into Id.
 --
@@ -74,14 +73,12 @@ instance Applicative Id where
   pure ::
     a
     -> Id a
-  pure =
-    error "todo: Course.Applicative pure#instance Id"
+  pure = Id
   (<*>) :: 
     Id (a -> b)
     -> Id a
     -> Id b
-  (<*>) =
-    error "todo: Course.Applicative (<*>)#instance Id"
+  (<*>) (Id f) = P.fmap f
 
 -- | Insert into a List.
 --
@@ -93,14 +90,13 @@ instance Applicative List where
   pure ::
     a
     -> List a
-  pure =
-    error "todo: Course.Applicative pure#instance List"
+  pure = (:. Nil)
   (<*>) ::
     List (a -> b)
     -> List a
     -> List b
-  (<*>) =
-    error "todo: Course.Apply (<*>)#instance List"
+  (<*>) Nil _        = Nil
+  (<*>) (f :. fs) xs = (f `P.fmap` xs) ++ (fs <*> xs)
 
 -- | Insert into an Optional.
 --
@@ -118,14 +114,13 @@ instance Applicative Optional where
   pure ::
     a
     -> Optional a
-  pure =
-    error "todo: Course.Applicative pure#instance Optional"
+  pure = Full
   (<*>) ::
     Optional (a -> b)
     -> Optional a
     -> Optional b
-  (<*>) =
-    error "todo: Course.Apply (<*>)#instance Optional"
+  (<*>) Empty    = const Empty
+  (<*>) (Full f) = P.fmap f
 
 -- | Insert into a constant function.
 --
@@ -184,8 +179,7 @@ lift2 ::
   -> f a
   -> f b
   -> f c
-lift2 =
-  error "todo: Course.Applicative#lift2"
+lift2 f a b = f <$> a <*> b
 
 -- | Apply a ternary function in the environment.
 --
@@ -216,8 +210,7 @@ lift3 ::
   -> f b
   -> f c
   -> f d
-lift3 =
-  error "todo: Course.Applicative#lift3"
+lift3 f a b c = f <$> a <*> b <*> c
 
 -- | Apply a quaternary function in the environment.
 --
@@ -249,8 +242,7 @@ lift4 ::
   -> f c
   -> f d
   -> f e
-lift4 =
-  error "todo: Course.Applicative#lift4"
+lift4 f a b c d = f <$> a <*> b <*> c <*> d
 
 -- | Apply, discarding the value of the first argument.
 -- Pronounced, right apply.
@@ -275,8 +267,7 @@ lift4 =
   f a
   -> f b
   -> f b
-(*>) =
-  error "todo: Course.Applicative#(*>)"
+(*>) _ b = b
 
 -- | Apply, discarding the value of the second argument.
 -- Pronounced, left apply.
@@ -301,8 +292,7 @@ lift4 =
   f b
   -> f a
   -> f b
-(<*) =
-  error "todo: Course.Applicative#(<*)"
+(<*) b _ = b
 
 -- | Sequences a list of structures to a structure of list.
 --
@@ -324,8 +314,8 @@ sequence ::
   Applicative f =>
   List (f a)
   -> f (List a)
-sequence =
-  error "todo: Course.Applicative#sequence"
+sequence Nil       = pure Nil
+sequence (x :. xs) = (++) <$> (pure <$> x) <*> (sequence xs) 
 
 -- | Replicate an effect a given number of times.
 --
@@ -348,8 +338,7 @@ replicateA ::
   Int
   -> f a
   -> f (List a)
-replicateA =
-  error "todo: Course.Applicative#replicateA"
+replicateA n = sequence . replicate n
 
 -- | Filter a list with a predicate that produces an effect.
 --
@@ -376,8 +365,9 @@ filtering ::
   (a -> f Bool)
   -> List a
   -> f (List a)
-filtering =
-  error "todo: Course.Applicative#filtering"
+filtering = undefined
+--filtering _ Nil       = pure Nil
+--filtering p (x :. xs) = p x
 
 -----------------------
 -- SUPPORT LIBRARIES --
